@@ -48,6 +48,20 @@
 	.close-button:focus-visible{
 	}
 
+	.cool-background{
+		background-image: url("cool_picture.jpg");
+		background-position: 50% 30%;
+		background-size: 100%;
+		padding-top:0.5vh;
+		padding-bottom:0.5vh;
+		margin-bottom:1vh;
+	}
+
+	.cool-text{
+		margin:0;
+		background-color: rgba(0,0,0,0.4);
+	}
+
 	.warning-button{
 		background-color: #db3b00;
 	}
@@ -595,8 +609,9 @@
 </head>
 
 <body>
-	<img src="https://static.manakeep.com/photos/2023/06/19/7mrf9b8sns_logo.png" hidden>
-    <h1 style="margin-top: 0; text-decoration: underline; width:100%; text-align:center;">Status Tracker</h1>
+	<div class="cool-background">
+    	<h1 class="cool-text" style="text-decoration: underline; width:100%; text-align:center;">Status Tracker</h1>
+	</div>
     <button hidden onclick="roll()">Roll a D20</button>
 	<div style="width:100%; text-align:center; margin-bottom:2vh;">
 		<button onclick="save_data()" class="warning-button" style=""> save </button>
@@ -644,7 +659,7 @@
 			<div class="creature-divider" ></div>
 		</div>
 	</div>
-	<p id="list-length"> tag list length </p>
+	<p style="width:100%; text-align:center;" id="list-length"> tag list length </p>
 	<div id="main-div"></div>
 	<div hidden id="colour-picker" style="position:absolute; width:10vh; height:10vh; top:50%; left:calc(50% - 5vh);">
 		<div id="colour-picker-colour" style="width:10vh; height:10vh; background-color: rgb(255,0,0);" onclick="colour_picker_input()">
