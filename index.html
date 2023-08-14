@@ -415,7 +415,7 @@
 		for(let divInd = 1; divInd < creature_div.children.length; divInd++){
 			//document.getElementById("list-length").textContent = "getting creature " + creature_div.children[divInd].id;
 			for(let tagInd = 0; tagInd < creature_div.children[divInd].children[2].children.length; tagInd++){
-				document.getElementById("list-length").textContent = "getting " + creature_div.children[divInd].children[2].children[tagInd].id;
+				//document.getElementById("list-length").textContent = "getting " + creature_div.children[divInd].children[2].children[tagInd].id;
 				let tagNode = creature_div.children[divInd].children[2].children[tagInd];
 				if(tagNode.id == acc_ind){
 					tagNode.remove();
