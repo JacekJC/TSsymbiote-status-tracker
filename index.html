@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html>
+<style>
+    body {
+        background-color: var(--ts-background-primary);
+        color: var(--ts-color-primary);
+        font-family: 'OptimusPrinceps', sans-serif;
+        font-size: 1.2rem;
+		margin : 0;
+		padding: 0;
+    }
+
+    button {
+        border: 1px solid var(--ts-accessibility-border);
+        color: var(--ts-color-primary);
+        font-family: 'OptimusPrinceps', sans-serif;
+
+        border-radius: 4px;
+        font-size: 1em;
+        padding: 0.2em 3em 0 3em;
+        background-color: var(--ts-button-background);
+        transition: ease-in-out 0.1s;
+    }
+
+    button:hover {
+        background-color: var(--ts-button-hover);
+        transition: ease-in-out 0.1s;
+    }
+
+	.creature-div{
+		margin-right: 2vw;
+		margin-left: 2vw;
+	}
+
+	.add-menu{
+		overflow: hidden;
+		transition: height ease-in-out 0s;
+	}
+
+	.close-button{
+		background-color: rgba(40,14,10,140);
+	}
+
+	.close-button:hover{
+		background-color: rgba(170,20,20,255);
+	}
+
+	.close-button:focus-visible{
+	}
+
+	.warning-button{
+		background-color: #db3b00;
+	}
+	
+	.tag-list-div{
+		transition: height ease-in-out 0.1s;
+	}
+	
+	.tags-button{
+		transition: height ease-in-out 0.1s;
+	}
+
+	.warning-button:hover{
+		background-color: rgba(250,72,0,255);
+	}
+
+	.tag-list{
+		transition: ease-in-out 0.1s;
+	}
+
+    button:focus-visible {
+        background-color: var(--ts-button-hover);
+        outline: 3px solid var(--ts-accessibility-focus);
+        outline-offset: -1px;
+        transition: outline-color 0s;
+    }
+
+	.fit-image{
+		width:100%;
+		height:100%;
+	}
+
+	.creature-divider{
+		height: 0.3vh;
+		width: 100%;
+		background-color: rgb(30,30,30);
+	}
+
+	.creature-name-div{
+		display:flex;
+	}
+
+	.tag-div{
+		margin-bottom: 2vh;
+		display:flex;
+		flex-wrap: wrap;
+	}
+	
+	.creature-tag{
+		margin:0.1vh;
+		width:32%;
+	}
+
+	.pin-button{
+		margin:0;
+		padding:0;
+		width: 2vh;
+		height: 2vh;
+		margin-top: 0.75vh;
+		margin-right: 1vh;
+	}
+
+	.base_tag_img{
+		background-color: rgb(100,30,30);
+		height: 2vh;
+		border-radius: 0px;
+		padding:0;
+		margin:0;
+	}
+	
+	.colour-range{
+		-webkit-appearance: none;
+		pointer: cursor;
+	}
+
+	.base_tag_text{
+		background-color: black;
+		border-top-right-radius: 5px;
+		border-bottom-right-radius: 5px;
+		top: 0;
+		transform: translate(0,-65%);
+		padding: 0px;
+		height: 70%;
+		width: 40%;
+	}
+
+</style>
+
+<script>
+
+	const tag_list = [];
+	const creature_ids = [];
+	const creature_tags = [];
+
+	function colour_picker_input(){
+		let mPos = [window.event.clientX-12, window.event.clientY-5];
+		document.getElementById("colour-picker-cursor").style.left= window.event.clientX-12 + "px";
+		document.getElementById("colour-picker-cursor").style.top= window.event.clientY-5 + "px";
+		//document.getElementById("list-length").textContent = "clicked";
+		let colour = get_slider_colour(document.getElementById("colour-picker-slider").value);
+		let colourPickerRect = document.getElementById("colour-picker-colour").getBoundingClientRect();
+		let xVal = 1-(mPos[0] - colourPickerRect.left) / colourPickerRect.width; 
+		let yVal = 1-(mPos[1] - colourPickerRect.top) / colourPickerRect.height; 
+		let toWhite = [255-colour[0], 255-colour[1], 255-colour[2]];
+		let acc_colour = [colour[0]+(toWhite[0]*xVal), colour[1]+(toWhite[1]*xVal), colour[2]+(toWhite[2]*xVal)];
+		acc_colour = [acc_colour[0]*yVal, acc_colour[1]*yVal, acc_colour[2]*yVal];
+		let colourString = "rgb("+acc_colour[0]+","+acc_colour[1]+", "+acc_colour[2]+")";
+		document.getElementById("new-tag-div").style = "display:flex; width:100%; height:2vh; background-color: " + colourString + ";";
+		document.getElementById("colour-picker").children[3].id = colourString;
+	}
+
+	function colour_picker_change(value){
+		let newColour = get_slider_colour(value);
+		let colourString = "rgb(" + newColour[0] + ", " + newColour[1] + ", " + newColour[2] + ")";
+		document.getElementById("colour-picker-colour").style = "width:10vh; height:10vh; background-color:" + colourString + "; top:0;";
+	}
+
+	function get_slider_colour(acc_value){
+		let value = acc_value;
+		if(value < 16){
+			return([255, (value/16)*255, 0]);
+		}
+		else if(value < 32){
+			value = value-16;
+			return([(1-(value/16))*255, 255, 0]);
+		}
+		else if(value < 48){
+			value = value-32;
+			return([0, 255, (value/16)*255]);
+		}
+		else if(value < 64){
+			value = value-48;
+			return([0, (1-(value/16))*255, 255]);
+		}
+		else if(value < 80){
+			value = value-64;
+			return([(value/16)*255, 0, 255]);
+		}
+		else if(value <= 100){
+			value = value-80;
+			return([255, 0, (1-(value/16))*255]);
+		}
+		return ([0,0,0]);
+	}
+
+    function logSymbioteEvent(event) {
+        console.log(event);
+    }
+
+	function onStateChangeEvent(msg){
+		if(msg.kind == "hasInitialized")
+			on_init();
+	}
+
+	function start_creature_picking(){
+		TS.picking.startPicking();
+	}
+
+	function open_colour_picker(){
+
+	}
+
+	async function on_init(){
+		document.getElementById("get_selection_button").onclick = async () => {
+			get_selection();
+		}
+		//tag_list = [];
+		load_data();
+		document.getElementById("list-length").textContent = tag_list;
+		colour_picker_change(50);
+		toggle_tag_list();
+		window.onclick = () => on_click();
+	}
+
+	async function get_selection(){	
+		let selectedCreatures = await TS.creatures.getSelectedCreatures();
+		if(selectedCreatures.cause ==  undefined){
+			if(selectedCreatures.length > 0){
+				document.getElementById("get_selection_button").style = 
+					"width:100%;padding:0;border-bottom-right-radius:0;border-top-right-radius:0; border-top-left-radius:15px; border-bottom-left-radius:0px; margin-right:1%;";
+				document.getElementById("clear_selection_button").style = 
+					"width:100%;padding:0;border-bottom-right-radius:0;border-top-right-radius:15px; border-top-left-radius:0px; border-bottom-left-radius:0px;";
+				TS.creatures.getMoreInfo(selectedCreatures).then((creatureInfos) => {
+					for(let creatureInfo of creatureInfos){
+						let contained = false;
+						for(let child of document.getElementById("creature-div").children){
+							if(child.id == creatureInfo.id)
+								contained = true;
+						}
+						if(contained)
+							continue;
+						const creature = document.getElementById("creature-div-pre").cloneNode(true);
+						creature.id = creatureInfo.id;
+						creature.children[1].children[0].textContent = creatureInfo.name;
+
+						const id_ind = creature_ids.indexOf(creatureInfo.id);
+						let st = "";
+						if(id_ind != -1){
+							//document.getElementById("list-length").textContent = "creature found!";
+							const tagArray = creature_tags[id_ind];
+							tagArray.forEach((element) => 
+							{
+								add_tag(creature.children[2], tag_list[element][1], tag_list[element][0], null);
+								st += "\n adding tag " + element;
+							})
+						}else{
+							//document.getElementById("list-length").textContent = "creature not found!";
+						}
+
+						const addButton = document.createElement("button");
+						addButton.textContent = "+";
+						addButton.classList.add("creature-tag");
+						addButton.onclick = () => create_add_tag_menu(creature.children[2], addButton);
+						creature.children[2].appendChild(addButton);
+						document.getElementById("creature-div").appendChild(creature);
+						if(document.getElementById("creature-div").children.length%2==0){
+						//	creature.style="display:block; background-color: rgb(15,15,15);";
+							creature.style="display:block;";
+						}else{
+							creature.style="display:block;";
+						}
+					}
+				});
+			}
+			else{
+				if(document.getElementById("creature-div").children.length<=1){
+					document.getElementById("get_selection_button").style = 
+						"width:100%;padding:0;border-bottom-right-radius:0;border-top-right-radius:0; border-top-left-radius:15px; border-bottom-left-radius:15px; margin-right:1%;";
+					document.getElementById("clear_selection_button").style = 
+						"width:100%;padding:0;border-bottom-right-radius:15px;border-top-right-radius:15px; border-top-left-radius:0px; border-bottom-left-radius:0px;";
+				}
+			}
+		}
+	}
+
+	function add_tag(domElement, colour, text, addButton, index = -1){
+		const newTag = document.createElement("button");
+		newTag.onclick = () => remove_tag(newTag);
+		newTag.textContent = text;
+		newTag.classList.add("creature-tag");
+		newTag.style = "background-color: "+colour+";";
+		newTag.id = index;
+		domElement.appendChild(newTag);
+		let copy = null;
+		if(addButton!=null){
+			copy = addButton.cloneNode(true);
+			addButton.remove();
+			copy.onclick = () => create_add_tag_menu(domElement, copy);
+			domElement.appendChild(copy);
+		}
+		close_add_tag_menu();
+		if(index==-1)
+			return;
+		
+		//document.getElementById("list-length").textContent = "trying to store";
+		const id = domElement.parentNode.id;
+		if(creature_ids.indexOf(id) != -1){
+			//document.getElementById("list-length").textContent = "creture already stored with id = " + id;
+			creature_tags[creature_ids.indexOf(id)].push(index);
+			//document.getElementById("list-length").textContent = "added " + tag_list[index] + " to " + id + " with new tags of " + creature_tags[creature_ids.indexOf(id)];
+		}else{
+			//document.getElementById("list-length").textContent = "registered new creature with id = " + id;
+			creature_ids.push(id);
+			creature_tags.push([index]);
+		}
+		return copy;
+		//create_add_tag_menu(domElement);
+	}
+
+	function toggle_tag_list(){
+		const t = document.getElementById("tag-list-div");
+		if(t.style.height != "0vh")
+		{
+			t.style.display = "flex";
+			t.style.height = "0vh";
+			document.getElementById("tag-list").style = "width: 100%; border-radius:10px";
+		}
+		else{
+			t.style.display = "flex";
+			t.style.height = 2*tag_list.length + 2 + "vh";
+			document.getElementById("tag-list").style = "width: 100%; border-radius:0; border-top-right-radius:10px; border-top-left-radius:10px;";
+		}
+	}
+
+	function close_add_tag_menu(){
+		if(ADD_TAG_MENU!=null)
+			ADD_TAG_MENU.remove();
+	}
+
+	function new_tag(){
+		close_add_tag_menu();
+		let name = document.getElementById("new-tag-name").value;
+		let color = document.getElementById("colour-picker").children[3].id;
+		add_new_tag([name, color]);
+	}
+
+	function save_data(){	
+		document.getElementById("list-length").textContent = [tag_list, creature_ids, creature_tags];
+		TS.localStorage.campaign.setBlob(JSON.stringify([tag_list, creature_ids, creature_tags]));
+		document.getElementById("list-length").textContent = "data saved";
+	}
+
+	function add_new_tag(data){
+		//document.getElementById("list-length").textContent = "added new tag";
+		close_add_tag_menu();
+		let name = data[0];
+		let color = data[1];
+		const newTag = document.getElementById("new-tag-e").cloneNode(true);
+		document.getElementById("tag-list-div").appendChild(newTag);
+		newTag.children[0].textContent = name;
+		newTag.style = "background-color: "+ color+";" + " display:flex; align-items:center;";
+		newTag.hidden = false;
+		//document.getElementById("list-length").textContent = "added new tag";
+		if(document.getElementById("tag-list-div").hidden){
+			toggle_tag_list();
+		}
+		tag_list.push([name, color]);
+		document.getElementById("tag-list-div").style.height = tag_list.length*2 + 2 + "vh";
+		newTag.children[1].onclick = () => delete_tag(newTag);
+	}
+
+	function delete_tag(index){
+		close_add_tag_menu();
+		let children_count = index.parentNode.children.length;
+		let ind = Array.prototype.indexOf.call(index.parentNode.children, index);
+		const acc_ind = ind-2;
+		tag_list.splice(acc_ind,1);
+		index.remove();
+		//document.getElementById("list-length").textContent = ind;
+		for(let creatureInd = 0; creatureInd < creature_ids.length; creatureInd++){	
+			//document.getElementById("list-length").textContent = "checking creature " + creature_ids[creatureInd] + " for tag " + acc_ind;
+			let intToRemove = -1;
+			for(let tagInd = 0; tagInd < creature_tags[creatureInd].length; tagInd++){
+				//document.getElementById("list-length").textContent = "checking creature " + creature_ids[creatureInd] + " for tag " + acc_ind + " at tag " + creature_tags[creatureInd][tagInd];
+				if(creature_tags[creatureInd][tagInd] > acc_ind){
+					creature_tags[creatureInd][tagInd] = creature_tags[creatureInd][tagInd]-1;
+				}else if(creature_tags[creatureInd][tagInd]==acc_ind){
+					//document.getElementById("list-length").textContent = "creature " + creature_ids[creatureInd] + " has tag " + acc_ind;
+					const toRemove = tagInd;
+					intToRemove = toRemove;
+				}
+			}
+			if(intToRemove > -1){
+				//document.getElementById("list-length").textContent = "deleting tag";
+				creature_tags[creatureInd].splice(intToRemove, 1);
+			}
+		}
+		document.getElementById("tag-list-div").style.height = tag_list.length*2 + 2 + "vh";
+		const creature_div = document.getElementById("creature-div");
+		//document.getElementById("list-length").textContent = "getting creatures from div " + creature_div.children.length;
+		for(let divInd = 1; divInd < creature_div.children.length; divInd++){
+			//document.getElementById("list-length").textContent = "getting creature " + creature_div.children[divInd].id;
+			for(let tagInd = 0; tagInd < creature_div.children[divInd].children[2].children.length; tagInd++){
+				document.getElementById("list-length").textContent = "getting " + creature_div.children[divInd].children[2].children[tagInd].id;
+				let tagNode = creature_div.children[divInd].children[2].children[tagInd];
+				if(tagNode.id == acc_ind){
+					tagNode.remove();
+				}
+			}
+		}
+	}
+
+	let ADD_TAG_MENU = null;
+
+	async function onCreatureStateChange(msg){
+		if(msg.kind=="creatureRemoved"){
+			//document.getElementById("list-length").textContent = "creature removed";	
+			//document.getElementById("list-length").textContent = msg.payload.id;	
+			const cDiv = document.getElementById("creature-div");
+			for(let i = 0; i < cDiv.children.length; i++){
+				if(cDiv.children[i].id==msg.payload.id){
+					cDiv.children[i].remove();
+					return;
+				}
+			}
+			const index = creature_ids.indexOf(msg.payload.id);
+			if(index !=-1){
+				creature_ids.splice(index, 1);
+				creature_tags.splice(index, 1);
+				//document.getElementById("list-length").textContent = "removing tag store";	
+				//document.getElementById("list-length").textContent = creature_ids;
+			}
+		}	
+	}
+
+	function on_click(){
+		const add_menu = document.getElementById("add-menu");
+		//document.getElementById("list-length").textContent = "clicked!";
+		if(add_menu != null){
+			//document.getElementById("list-length").textContent = "clicked with add menu open";
+			const bounds = add_menu.getBoundingClientRect();
+			if(window.event.clientX > bounds.left && window.event.clientX < bounds.right && 
+				window.event.clientY > bounds.top && window.event.clientY < bounds.bottom){
+				//document.getElementById("list-length").textContent = "clicked with add menu open: IN BOUNDS";
+			}else{
+				//document.getElementById("list-length").textContent = "clicked with add menu open: OUT OF BOUNDS";
+				close_add_tag_menu();
+			}
+		}
+	}
+
+	function create_add_tag_menu(creatureToTag, addButton){
+		close_add_tag_menu();
+		const listDiv = document.createElement("div");
+		listDiv.id = "add-menu";
+		listDiv.style = "color: Black; position: absolute; height: 0vh; width: 40vw; top:0; left:0; background-color: rgba(0,0,0,0.5); padding: 0; margin: 0;";
+		const creaturePos = [window.event.pageX, window.event.pageY];
+		//listDiv.textContent = creaturePos;
+		listDiv.style.left = "calc(" + creaturePos[0]+"px - "+"20vw)";
+		listDiv.style.top = creaturePos[1]-5+"px";
+		let index = 0;
+		for(const tag of tag_list){
+			const newTag = document.createElement("button");
+			const this_index = index;
+			newTag.onclick = () => add_tag(creatureToTag, tag[1], tag[0], addButton, this_index);
+			newTag.style = "float: top; width:100%; height:2vh; background-color:" + tag[1] + "; justify-content:center; align-items: center;";
+			newTag.textContent = tag[0];
+			listDiv.appendChild(newTag);
+			index++;
+		}
+		document.getElementById("main-div").appendChild(listDiv);
+		ADD_TAG_MENU = listDiv;
+		const bounds = listDiv.getBoundingClientRect();
+		//document.getElementById("list-length").textContent = bounds.x;
+		if(bounds.left < 0){
+			listDiv.style.left = "0";
+		}
+		//document.getElementById("list-length").textContent = bounds.right + " " + window.innerWidth;
+		if(bounds.right > window.innerWidth){
+			listDiv.style.left = window.innerWidth - bounds.width + "px";
+		}
+		/*if(bounds.bottom > window.innerHeight){
+			document.getElementById("list-length").textContent = bounds.bottom + " " + window.innerHeight;
+			listDiv.style.bottom = (0 + -bounds.height) + "px";
+		}*/
+		listDiv.classList.add("add-menu");
+		listDiv.style.height = listDiv.children.length * 2 + "vh";
+	}
+
+	function load_data(){
+		TS.localStorage.campaign.getBlob().then((data) => {
+			const setData = JSON.parse(data);
+			create_tags(setData[0]);
+			for(let i = 0; i < setData[1].length; i++){
+				creature_ids.push(setData[1][i]);
+				creature_tags.push(setData[2][i]);
+			}
+			document.getElementById("list-length").textContent = "data loaded!";
+		});		
+	}
+
+	function create_tags(data){
+		let index = 0;
+		data.forEach((element)=> {
+			add_new_tag(element);
+			index++;
+		});
+	}
+
+	function clear_creatures(){
+		let element = document.getElementById("creature-div");
+		let length = element.children.length;
+		let currentInt = 1;
+		for(let i = 1; i < length; i++)
+		{
+			if(element.children[currentInt].children[0].id != "pinned")
+			{
+				element.children[currentInt].remove();
+			}
+			else{
+				currentInt++;
+			}
+		}
+		if(document.getElementById("creature-div").children.length<=1){
+			document.getElementById("get_selection_button").style = 
+				"width:100%;padding:0;border-bottom-right-radius:0;border-top-right-radius:0; border-top-left-radius:15px; border-bottom-left-radius:15px; margin-right:1%;";
+			document.getElementById("clear_selection_button").style = 
+				"width:100%;padding:0;border-bottom-right-radius:15px;border-top-right-radius:15px; border-top-left-radius:0px; border-bottom-left-radius:0px;";
+		}
+	}
+
+	function remove_creature(element){
+		element.parentNode.parentNode.remove();
+		if(document.getElementById("creature-div").children.length<=1){
+					document.getElementById("get_selection_button").style = 
+						"width:100%;padding:0;border-bottom-right-radius:0;border-top-right-radius:0; border-top-left-radius:15px; border-bottom-left-radius:15px; margin-right:1%;";
+					document.getElementById("clear_selection_button").style = 
+						"width:100%;padding:0;border-bottom-right-radius:15px;border-top-right-radius:15px; border-top-left-radius:0px; border-bottom-left-radius:0px;";
+		}
+	}
+
+	function toggle_pin(creature){
+		const pinnedDiv = creature.parentNode.parentNode.children[0];
+		if(pinnedDiv.id=="pinned"){
+			pinnedDiv.id="";
+			creature.children[0].style = "filter: brightness(20%)";
+		}else{
+			pinnedDiv.id="pinned";
+			//creature.children[0].style = "filter: sepia(31%) saturate(7493%) hue-rotate(17deg) brightness(104%) contrast(101%);";
+			creature.children[0].style = "filter: invert(31%) sepia(77%) saturate(7496%) hue-rotate(23deg) brightness(104%) contrast(101%)";
+		}
+	}
+
+    function handleRollResult(event) {
+        console.log(event);
+        if (event.kind == "rollResults") {
+            TS.dice.evaluateDiceResultsGroup(event.payload.resultsGroups[0]).then((summedRoll) => {
+                document.getElementById("dice-result").textContent = "The last roll result was: " + summedRoll;
+            });
+        } else if (event.kind == "rollRemoved") {
+            document.getElementById("dice-result").textContent = "A dice roll got removed!";
+        }
+    }
+
+	function tag_colour_change(){
+		let color = "rgb(" + document.getElementById("r-slider").value + ", " + document.getElementById("g-slider").value + ", " + document.getElementById("b-slider").value + ");";
+		document.getElementById("new-tag-div").style = "display:flex; width:100%; height:2vh; background-color: " + color + ";";
+	}
+
+	function remove_tag(tag){
+		close_add_tag_menu();
+		const ind = Array.prototype.indexOf.call(tag.parentNode.children, tag);
+		const creature_id = tag.parentNode.parentNode.id;
+		//document.getElementById("list-length").textContent = "removing tag " + ind + " from " + creature_id;
+		creature_tags[creature_ids.indexOf(creature_id)].splice(ind, 1);
+		tag.remove();
+	}
+
+    function roll() {
+        TS.dice.putDiceInTray([{name: "example roll", roll: "D20"}]);
+    }
+
+	function open_colour_picker(){
+		document.getElementById("colour-picker").hidden = false;
+	}
+
+	function close_colour_picker(){
+		document.getElementById("colour-picker").hidden = true;
+	}
+
+</script>
+
+<head>
+    <title>Quest Helper</title>
+</head>
+
+<body>
+	<img src="https://static.manakeep.com/photos/2023/06/19/7mrf9b8sns_logo.png" hidden>
+    <h1 style="margin-top: 0; text-decoration: underline; width:100%; text-align:center;">Status Tracker</h1>
+    <button hidden onclick="roll()">Roll a D20</button>
+	<div style="width:100%; text-align:center; margin-bottom:2vh;">
+		<button onclick="save_data()" class="warning-button" style=""> save </button>
+	</div>
+    <p hidden id="dice-result"></p>
+	<div style="margin-right: 2vw; margin-left:2vw;">
+		<button onclick="toggle_tag_list()" id="tag-list" style="width: 100%; border-radius:10px; margin-right: 10vw; margin-left: 10vw;" class="tags-button"> tags </button>
+		<div id="tag-list-div" class="tag-list-div" style="gap:0; display:flex; flex-direction:column; overflow:hidden; height:0vh;">
+			<div id = "new-tag-div" style="width:100%; height:2vh; background-color: rgb(40,40,40); margin:0; padding:0; display:flex; vertical-align:center;">
+				<Input id="new-tag-name" type="Text" placeholder="tag name" style="margin-left: 1vh; margin-top:0.4vh; margin-bottom:0.4vh; background-color: black; border: 0; margin-right: 10%; width: 50%; color: white; border:none; flex-grow:1;"></Input>
+				<Button style="vertical-align:center; transform:translate(0,5%); height: 80%; width:8vh; flex-grow: 1; padding:0; content-align:center; margin-right:2%;" onclick="open_colour_picker()">
+					set colour
+				</Button>
+				<Button style="vertical-align:center; transform:translate(0,5%); height: 80%; width:4vh; flex-grow: 1; padding:0; content-align:center; margin-right:2%;" onclick="new_tag()">
+					<i class="ts-icon-plus ts-icon-small" style="filter: brightness(100%);"> </i>
+				</Button>
+			</div>
+			<div id="new-tag-e" class="base_tag_img" style="margin:0; padding:0; display:none; height:10vh;">
+				<p style="padding-left:10px; flex-grow:2; margin:0; margin-right:10%; width: 100%; height: 60%; color: white; user-select:none; display:flex; text-align:center; transform: translate(0,0); text-align: center;" class="base_tag_text"></p>
+					<Button style="margin:0; padding:0; width: 2vh; height:80%; margin-right:2%; margin-top:5%; margin-bottom:5%;" class="close-button">
+						<img src="https://upload.wikimedia.org/wikipedia/commons/7/7d/Ic_close_48px.svg" style="filter: invert(100%); width:100%; height:100%;"class="fit-image">
+					</Button>
+			</div>
+		</div>
+	</div>
+	<p></p>
+	<div style="display: flex; height:2vh; margin-left: 2vw; margin-right: 2vw;">
+    	<button id="get_selection_button" style="width:100%;padding:0;border-bottom-right-radius:0;border-top-right-radius:0; border-top-left-radius:15px; border-bottom-left-radius:15px; margin-right:1%;">Add Selected Creatures</button>
+    	<button onclick="clear_creatures()" class="warning-button" id="clear_selection_button" style="width:100%;padding:0; border-bottom-left-radius:0; border-top-left-radius:0; border-top-right-radius:15px; border-bottom-right-radius:15px;">Clear Creatures</button>
+	</div>
+	<div id="creature-div" class="creature-div" >
+		<div id="creature-div-pre" style="display:none;">
+			<div class="creature-divider" ></div>
+			<div class="creature-name-div">
+				<p style="width:100%; user-select:none;" >creature_name</p>
+				<button style="background-color:rgba(0,0,0,0); color:black; border:0;" class="pin-button" onclick="toggle_pin(this)" >
+					<i class="ts-icon-lock ts-icon-small" style="filter: brightness(20%);"> </i>
+				</button>
+				<button class="pin-button close-button" onclick="remove_creature(this)" >
+					<i class="ts-icon-remove ts-icon-small" style="filter: brightness(60%);"> </i>
+				</button>
+			</div>
+			<div class="tag-div">
+			</div>
+			<div class="creature-divider" ></div>
+		</div>
+	</div>
+	<p id="list-length"> tag list length </p>
+	<div id="main-div"></div>
+	<div hidden id="colour-picker" style="position:absolute; width:10vh; height:10vh; top:50%; left:calc(50% - 5vh);">
+		<div id="colour-picker-colour" style="width:10vh; height:10vh; background-color: rgb(255,0,0);" onclick="colour_picker_input()">
+		<div id="colour-picker-white" style="user-select:none; position:absolute; width:10vh; height:10vh; background: linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%); top:0;" onclick="colour_picker_input()">
+		<div id="colour-picker-black" style="position:absolute; width:10vh; height:10vh; background: linear-gradient(0deg, rgba(0,0,0,1) 0%, rgba(255,255,255,0) 100%); top:0;">
+		</div></div></div>
+		<Input type="range" id="colour-picker-slider" onchange="colour_picker_change(this.value)" class="colour-range" min="0" max="100" value="50"
+		style="background: linear-gradient(90deg, rgb(255,0,0) 0%, rgb(255,255,0) 16%, rgb(0,255,0) 32%, rgb(0,255,255) 48%, rgb(0,0,255) 64%, rgb(255,0,255) 80%, rgb(255,0,0) 100%); 
+		transform: translate(0,0); width:100%; user-select:none; color: rgba(0,0,0,0);">
+		<div hidden id="colour-picker-cursor" style="width:10px; height:10px; position:absolute; background-color:white; user-select:none;"></div>
+		<div></div>
+		<button style="position: absolute; top: 0; right: 0; width: 2vh; transform: translate(100%, -100%); height:2vh; padding:0; margin:0;" onclick="close_colour_picker()"> X </button>
+	</div>
+</body>
+</html>
