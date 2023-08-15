@@ -156,6 +156,8 @@
 
 <script>
 
+	const new_tag_size="1em;";
+
 	const tag_list = [];
 	let creature_ids = [];
 	let creature_tags = [];
@@ -284,6 +286,7 @@
 						addButton.textContent = "+";
 						addButton.classList.add("creature-tag");
 						addButton.onclick = () => create_add_tag_menu(creature.children[2], addButton);
+						addButton.id = "add-button";
 						creature.children[2].appendChild(addButton);
 						document.getElementById("creature-div").appendChild(creature);
 						if(document.getElementById("creature-div").children.length%2==0){
@@ -327,7 +330,7 @@
 		newTag.onclick = () => remove_tag(newTag);
 		newTag.textContent = text;
 		newTag.classList.add("creature-tag");
-		newTag.style = "background-color: "+colour+";";
+		newTag.style = "background-color: "+colour+"; padding:0; height:auto;";
 		newTag.id = index;
 		domElement.appendChild(newTag);
 		let copy = null;
@@ -355,7 +358,7 @@
 		}
 		else{
 			t.style.display = "flex";
-			t.style.height = 2*tag_list.length + 2 + "vh";
+			t.style.height = "auto";
 			document.getElementById("tag-list").style = "width: 100%; border-radius:0; border-top-right-radius:10px; border-top-left-radius:10px;";
 		}
 	}
@@ -386,14 +389,14 @@
 		const newTag = document.getElementById("new-tag-e").cloneNode(true);
 		document.getElementById("tag-list-div").appendChild(newTag);
 		newTag.children[0].textContent = name;
-		newTag.style = "background-color: "+ color+";" + " display:flex; align-items:center;";
+		newTag.style = "background-color: "+ color+";" + " display:flex; align-items:center; height:auto; padding:0; margin:0;";
 		newTag.hidden = false;
 		//document.getElementById("list-length").textContent = "added new tag";
 		if(document.getElementById("tag-list-div").hidden){
 			toggle_tag_list();
 		}
 		tag_list.push([name, color]);
-		document.getElementById("tag-list-div").style.height = tag_list.length*2 + 2 + "vh";
+		document.getElementById("tag-list-div").style.height = "auto";
 		newTag.children[1].onclick = () => delete_tag(newTag);
 	}
 
@@ -498,15 +501,15 @@
 			const id_index = creature_ids.indexOf(creatureToTag.parentNode.id);
 			if(id_index>-1){
 				if(creature_tags[id_index].indexOf(this_index)!=-1){
-					newTag.style = "float: top; width:100%; height:2vh; background-color:" + tag[1] + "; filter: brightness(20%);justify-content:center; align-items: center;";
+					newTag.style = "float: top; width:100%; height:auto; background-color:" + tag[1] + "; filter: brightness(20%);justify-content:center; align-items: center;";
 				}
 				else{
 					newTag.onclick = () => add_tag(creatureToTag, tag[1], tag[0], addButton, this_index);
-					newTag.style = "float: top; width:100%; height:2vh; background-color:" + tag[1] + "; justify-content:center; align-items: center;";
+					newTag.style = "float: top; width:100%; height:auto; background-color:" + tag[1] + "; justify-content:center; align-items: center;";
 				}
 			}else{
 				newTag.onclick = () => add_tag(creatureToTag, tag[1], tag[0], addButton, this_index);
-				newTag.style = "float: top; width:100%; height:2vh; background-color:" + tag[1] + "; justify-content:center; align-items: center;";
+				newTag.style = "float: top; width:100%; height:auto; background-color:" + tag[1] + "; justify-content:center; align-items: center;";
 			}
 			newTag.textContent = tag[0];
 			listDiv.appendChild(newTag);
@@ -528,7 +531,9 @@
 			listDiv.style.bottom = (0 + -bounds.height) + "px";
 		}*/
 		listDiv.classList.add("add-menu");
-		listDiv.style.height = listDiv.children.length * 2 + "vh";
+		//listDiv.style.height = listDiv.children.length * 2 + "vh";
+		listDiv.style.height = "auto";
+		listDiv.style.overflow = "hidden";
 	}
 
 	function load_data(){
@@ -698,7 +703,7 @@
 
 <head>
     <title>Quest Helper</title>
-	<link rel="icon" type="image/x-icon" href="">
+	<link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/Preraiderz/TSsymbiote-status-tracker/main/cool_icon.png">
 </head>
 
 <body>
@@ -716,8 +721,8 @@
 	<div style="margin-right: 2vw; margin-left:2vw;">
 		<button onclick="toggle_tag_list()" id="tag-list" style="width: 100%; border-radius:10px; margin-right: 10vw; margin-left: 10vw;" class="tags-button"> tags </button>
 		<div id="tag-list-div" class="tag-list-div" style="gap:0; display:flex; flex-direction:column; overflow:hidden; height:0vh;">
-			<div id = "new-tag-div" style="width:100%; height:2vh; background-color: rgb(40,40,40); margin:0; padding:0; display:flex; vertical-align:center;">
-				<Input id="new-tag-name" type="Text" placeholder="tag name" style="margin-left: 1vh; margin-top:0.4vh; margin-bottom:0.4vh; background-color: black; border: 0; margin-right: 10%; width: 50%; color: white; border:none; flex-grow:1;"></Input>
+			<div id = "new-tag-div" style="width:100%; height:auto; background-color: rgb(40,40,40); margin:0; padding:0; display:flex; vertical-align:center;">
+				<Input id="new-tag-name" type="Text" placeholder="tag name" style="height: auto; margin-left: 1vh; margin-top:0.4vh; margin-bottom:0.4vh; background-color: black; border: 0; margin-right: 10%; width: 50%; color: white; border:none; flex-grow:1;"></Input>
 				<Button style="vertical-align:center; transform:translate(0,5%); height: 80%; width:8vh; flex-grow: 1; padding:0; content-align:center; margin-right:2%;" onclick="open_colour_picker()">
 					set colour
 				</Button>
@@ -725,10 +730,10 @@
 					<i class="ts-icon-plus ts-icon-small" style="filter: brightness(100%);"> </i>
 				</Button>
 			</div>
-			<div id="new-tag-e" class="base_tag_img" style="margin:0; padding:0; display:none; height:10vh;">
-				<p style="padding-left:10px; flex-grow:2; margin:0; margin-right:10%; width: 100%; height: 60%; color: white; user-select:none; display:flex; text-align:center; transform: translate(0,0); text-align: center;" class="base_tag_text"></p>
-					<Button style="margin:0; padding:0; width: 2vh; height:80%; margin-right:2%; margin-top:5%; margin-bottom:5%;" class="close-button">
-						<img src="https://upload.wikimedia.org/wikipedia/commons/7/7d/Ic_close_48px.svg" style="filter: invert(100%); width:100%; height:100%;"class="fit-image">
+			<div id="new-tag-e" class="base_tag_img" style="margin:0; padding:0; display:flex; height:auto; align-items:center;">
+				<p style="display:flex; font-size: auto; padding-left:10px; flex-grow:2; margin:0; margin-right:10%; width: 100%; height: 60%; margin-bottom: 1%; margin-top:1%;color: white; user-select:none; display:flex; text-align:center; transform: translate(0,0); text-align: center;" class="base_tag_text"> test </p>
+					<Button style="display: flex; margin:0; padding:0; width: auto; margin-top:1%; margin-bottom: 1%; height:5%; width: 5%; margin-right:2%;" class="close-button">
+						<img src="https://upload.wikimedia.org/wikipedia/commons/7/7d/Ic_close_48px.svg" style="display:flex; filter: invert(100%); width:100%; height:100%;"class="fit-image">
 					</Button>
 			</div>
 		</div>
