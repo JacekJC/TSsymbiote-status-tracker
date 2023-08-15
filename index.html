@@ -501,15 +501,15 @@
 			const id_index = creature_ids.indexOf(creatureToTag.parentNode.id);
 			if(id_index>-1){
 				if(creature_tags[id_index].indexOf(this_index)!=-1){
-					newTag.style = "float: top; width:100%; height:auto; background-color:" + tag[1] + "; filter: brightness(20%);justify-content:center; align-items: center;";
+					newTag.style = "display: flex; float: top; width:100%; height:auto; background-color:" + tag[1] + "; filter: brightness(20%);justify-content:center; align-items: center;";
 				}
 				else{
 					newTag.onclick = () => add_tag(creatureToTag, tag[1], tag[0], addButton, this_index);
-					newTag.style = "float: top; width:100%; height:auto; background-color:" + tag[1] + "; justify-content:center; align-items: center;";
+					newTag.style = "display: flex; float: top; width:100%; height:auto; background-color:" + tag[1] + "; justify-content:center; align-items: center;";
 				}
 			}else{
 				newTag.onclick = () => add_tag(creatureToTag, tag[1], tag[0], addButton, this_index);
-				newTag.style = "float: top; width:100%; height:auto; background-color:" + tag[1] + "; justify-content:center; align-items: center;";
+				newTag.style = "display: flex; float: top; width:100%; height:auto; background-color:" + tag[1] + "; justify-content:center; align-items: center;";
 			}
 			newTag.textContent = tag[0];
 			listDiv.appendChild(newTag);
