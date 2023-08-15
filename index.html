@@ -452,7 +452,7 @@
 			const cDiv = document.getElementById("creature-div");
 			for(let i = 0; i < cDiv.children.length; i++){
 				if(cDiv.children[i].id==msg.payload.id){
-					cDiv.children[i].remove();
+					remove_creature(cDiv.children[i].children[0]);
 					return;
 				}
 			}
@@ -610,6 +610,11 @@
 
 	function remove_creature(element){
 		element.parentNode.parentNode.remove();
+		const id = creature_ids.indexOf(element.parentNode.id);
+		if(id !=-1){
+			creature_ids.splice(id,1);
+			creature_tags.splice(id,1);
+		}
 		if(document.getElementById("creature-div").children.length<=1){
 					document.getElementById("get_selection_button").style = 
 						"width:100%;padding:0;border-bottom-right-radius:0;border-top-right-radius:0; border-top-left-radius:15px; border-bottom-left-radius:15px; margin-right:1%;";
