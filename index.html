@@ -10,6 +10,10 @@
 		padding: 0;
     }
 
+	.settings-menu{
+		transition: ease-in-out 0.1s;
+	}
+
     button {
         border: 1px solid var(--ts-accessibility-border);
         color: var(--ts-color-primary);
@@ -153,8 +157,8 @@
 <script>
 
 	const tag_list = [];
-	const creature_ids = [];
-	const creature_tags = [];
+	let creature_ids = [];
+	let creature_tags = [];
 
 	function colour_picker_input(){
 		let mPos = [window.event.clientX-12, window.event.clientY-5];
@@ -214,6 +218,11 @@
 	function onStateChangeEvent(msg){
 		if(msg.kind == "hasInitialized")
 			on_init();
+		if(msg.kind == "willShutdown")
+		{
+			save_data();
+			console.Log("shutting down");
+		}
 	}
 
 	function start_creature_picking(){
@@ -298,6 +307,22 @@
 	}
 
 	function add_tag(domElement, colour, text, addButton, index = -1){
+		const id = domElement.parentNode.id;
+		if(index!=-1){
+		if(creature_ids.indexOf(id) != -1){
+			//document.getElementById("list-length").textContent = "creture already stored with id = " + id;
+			if(creature_tags[creature_ids.indexOf(id)].indexOf(index)>-1){
+				close_add_tag_menu();
+				return null;
+			}
+			creature_tags[creature_ids.indexOf(id)].push(index);
+			//document.getElementById("list-length").textContent = "added " + tag_list[index] + " to " + id + " with new tags of " + creature_tags[creature_ids.indexOf(id)];
+		}else{
+			//document.getElementById("list-length").textContent = "registered new creature with id = " + id;
+			creature_ids.push(id);
+			creature_tags.push([index]);
+		}
+		}
 		const newTag = document.createElement("button");
 		newTag.onclick = () => remove_tag(newTag);
 		newTag.textContent = text;
@@ -312,23 +337,12 @@
 			copy.onclick = () => create_add_tag_menu(domElement, copy);
 			domElement.appendChild(copy);
 		}
+
 		close_add_tag_menu();
+
 		if(index==-1)
-			return;
-		
-		//document.getElementById("list-length").textContent = "trying to store";
-		const id = domElement.parentNode.id;
-		if(creature_ids.indexOf(id) != -1){
-			//document.getElementById("list-length").textContent = "creture already stored with id = " + id;
-			creature_tags[creature_ids.indexOf(id)].push(index);
-			//document.getElementById("list-length").textContent = "added " + tag_list[index] + " to " + id + " with new tags of " + creature_tags[creature_ids.indexOf(id)];
-		}else{
-			//document.getElementById("list-length").textContent = "registered new creature with id = " + id;
-			creature_ids.push(id);
-			creature_tags.push([index]);
-		}
+			return;	
 		return copy;
-		//create_add_tag_menu(domElement);
 	}
 
 	function toggle_tag_list(){
@@ -407,6 +421,11 @@
 			if(intToRemove > -1){
 				//document.getElementById("list-length").textContent = "deleting tag";
 				creature_tags[creatureInd].splice(intToRemove, 1);
+				if(creature_tags[creatureInd].length==0){
+					creature_tags.splice(creatureInd,1);
+					creature_ids.splice(creatureInd,1);
+					creatureInd--;
+				}
 			}
 		}
 		document.getElementById("tag-list-div").style.height = tag_list.length*2 + 2 + "vh";
@@ -476,8 +495,19 @@
 		for(const tag of tag_list){
 			const newTag = document.createElement("button");
 			const this_index = index;
-			newTag.onclick = () => add_tag(creatureToTag, tag[1], tag[0], addButton, this_index);
-			newTag.style = "float: top; width:100%; height:2vh; background-color:" + tag[1] + "; justify-content:center; align-items: center;";
+			const id_index = creature_ids.indexOf(creatureToTag.parentNode.id);
+			if(id_index>-1){
+				if(creature_tags[id_index].indexOf(this_index)!=-1){
+					newTag.style = "float: top; width:100%; height:2vh; background-color:" + tag[1] + "; filter: brightness(20%);justify-content:center; align-items: center;";
+				}
+				else{
+					newTag.onclick = () => add_tag(creatureToTag, tag[1], tag[0], addButton, this_index);
+					newTag.style = "float: top; width:100%; height:2vh; background-color:" + tag[1] + "; justify-content:center; align-items: center;";
+				}
+			}else{
+				newTag.onclick = () => add_tag(creatureToTag, tag[1], tag[0], addButton, this_index);
+				newTag.style = "float: top; width:100%; height:2vh; background-color:" + tag[1] + "; justify-content:center; align-items: center;";
+			}
 			newTag.textContent = tag[0];
 			listDiv.appendChild(newTag);
 			index++;
@@ -519,6 +549,41 @@
 			add_new_tag(element);
 			index++;
 		});
+	}
+
+	async function clear_unit_data(){	
+		/*await TS.creatures.getUniqueCreaturesInThisCampaign().then((unique_creatures) => {	
+			document.getElementById("list-length").textContent = "clearing unit data";
+			const new_unit_list = [];
+			const new_tag_list = [];
+			document.getElementById("list-length").textContent = unique_creatures.length;
+			if(unique_creatures.length > 0){
+				for(let ind = 0; ind < unique_creatures.length; ind++){
+					const id = unique_creatures[ind].id;
+					document.getElementById("list-length").textContent = creature_ids + " //////// " + id;
+					const index = creature_ids.indexOf(id);
+					if(index > -1){
+						document.getElementById("list-length").textContent = id;
+						new_unit_list.push(creature_ids[index]);
+						new_tag_list.push(creature_tags[index]);
+					}
+				}
+			} else {
+				document.getElementById("list-length").textContent = "no unique creatures found!";
+			}
+			creature_ids = new_unit_list;
+			creature_tags = new_tag_list;
+			TS.localStorage.campaign.setBlob(JSON.stringify([tag_list, new_unit_list, new_tag_list]));
+			close_clear_unit_data();
+			//document.getElementById("list-length").textContent = "data cleared!";
+		})*/
+		clear_creatures();
+		creature_ids = [];
+		creature_tags = [];
+		TS.localStorage.campaign.setBlob(JSON.stringify([tag_list, [], []]));
+		close_clear_unit_data();
+		close_settings();
+		document.getElementById("list-length").textContent = "data cleared!";
 	}
 
 	function clear_creatures(){
@@ -586,8 +651,14 @@
 		const ind = Array.prototype.indexOf.call(tag.parentNode.children, tag);
 		const creature_id = tag.parentNode.parentNode.id;
 		//document.getElementById("list-length").textContent = "removing tag " + ind + " from " + creature_id;
-		creature_tags[creature_ids.indexOf(creature_id)].splice(ind, 1);
+		const creature_index = creature_ids.indexOf(creature_id);
+		creature_tags[creature_index].splice(ind, 1);
 		tag.remove();
+		if(creature_tags[creature_index].length<=0){
+			creature_ids.splice(creature_index, 1);
+			creature_tags.splice(creature_index, 1);
+			//document.getElementById("list-length").textContent = "removed a creature from list";
+		}
 	}
 
     function roll() {
@@ -602,6 +673,22 @@
 		document.getElementById("colour-picker").hidden = true;
 	}
 
+	function close_clear_unit_data(){
+		document.getElementById("clear-unit-data").hidden=true;
+	}
+
+	function open_clear_unit_data(){
+		document.getElementById("clear-unit-data").hidden=false;
+	}
+
+	function close_settings(){
+		document.getElementById("settings").hidden=true;
+	}
+
+	function open_settings(){
+		document.getElementById("settings").hidden = false;
+	}
+
 </script>
 
 <head>
@@ -611,6 +698,9 @@
 <body>
 	<div class="cool-background">
     	<h1 class="cool-text" style="text-decoration: underline; width:100%; text-align:center;">Status Tracker</h1>
+		<button onclick="open_settings()" class="warning-button" style="position: absolute; top:0; right:0; padding:0.1%; text-align:center;">
+			<i class="ts-icon-gear ts-icon-small"></i>
+		</button>
 	</div>
     <button hidden onclick="roll()">Roll a D20</button>
 	<div style="width:100%; text-align:center; margin-bottom:2vh;">
@@ -672,6 +762,26 @@
 		<div hidden id="colour-picker-cursor" style="width:10px; height:10px; position:absolute; background-color:white; user-select:none;"></div>
 		<div></div>
 		<button style="position: absolute; top: 0; right: 0; width: 2vh; transform: translate(100%, -100%); height:2vh; padding:0; margin:0;" onclick="close_colour_picker()"> X </button>
+	</div>
+	<div style="user-select:none; position:absolute; top:0;left:0; width:100%; height:100%; pointer-events:none; overflow:hidden;">
+	<div hidden id="settings" class="settings-menu" style="pointer-events:fill; background-color: rgba(0,0,0,0.92); right:0; position:absolute; top:0; height:100%; width:50%; padding-right:2vw; padding-left:2vw;">
+		<button onclick="close_settings()" class="warning-button" style="position: absolute; top:0; right:0; padding:0.1%; text-align:center;">
+			<i class="ts-icon-remove ts-icon-small"></i>
+		</button>
+		<p style="text-align:center; font-size:3em; margin:0; margin-bottom:2vh;"> settings </p>
+		<button onclick="open_clear_unit_data()" class="warning-button" style="width:100%;"> clear unit data </button>
+	</div>
+	</div>
+	<div hidden id="clear-unit-data" style="position:absolute; top: 0; left: 0; width:100%; height:100%; background-color:rgba(0,0,0,0.92); paddin:2vh;">
+		<i class="ts-icon-warning" style="text-align:center; width:100%; margin-left:50%;" ></i>
+		<p style="padding:2vh; margin: 0; margin-bottom:0; text-align:center; font-size:2em;"> Clear Unit Data</p>
+		<p style="padding:2vh; margin: 0; margin-bottom:0;"> Sometimes if you forget to save or saving goes wrong creatures that have been removed from the board stay stored in the file meaning there is no way to remove it from the file without manually deleting it or simply clearing all the creature data. this simply clears all the stored creatures and their tags from the file. <span style="color:orange;"> this will not clear your tags</span>
+		</p>
+		<p hidden style="color: orange; text-align:center; margin-top:0;"><span> This will not clear unique creatures! </span></p>
+		<div style="text-align:center;">
+		<button class="warning-button" style="margin-right:18vw;" onclick="clear_unit_data()" id="clear">clear</button>
+		<button onclick="close_clear_unit_data()" id="close">close</button>
+		</div>
 	</div>
 </body>
 </html>
